@@ -45,12 +45,13 @@ const fontSizes = [
  * @returns {fontsizePX}
  */
 function getFontSizePxByPt(pt) {
-  for (let i = 0; i < fontSizes.length; i += 1) {
-    const fontSize = fontSizes[i];
-    if (fontSize.pt === pt) {
-      return fontSize.px;
-    }
-  }
+  // 默认渲染px
+  // for (let i = 0; i < fontSizes.length; i += 1) {
+  //   const fontSize = fontSizes[i];
+  //   if (fontSize.pt === pt) {
+  //     return fontSize.px;
+  //   }
+  // }
   return pt;
 }
 

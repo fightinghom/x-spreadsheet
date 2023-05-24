@@ -1,4 +1,4 @@
-declare module 'x-data-spreadsheet' {
+declare module 'ttd-data-spreadsheet' {
   export interface ExtendToolbarOption {
     tip?: string;
     el?: HTMLElement;
@@ -11,6 +11,8 @@ declare module 'x-data-spreadsheet' {
     showGrid?: boolean;
     showContextmenu?: boolean;
     showBottomBar?: boolean;
+    dataBarFn?: any,
+    fieldOperationsFn?: any,
     extendToolbar?: {
       left?: ExtendToolbarOption[],
       right?: ExtendToolbarOption[],
@@ -31,18 +33,18 @@ declare module 'x-data-spreadsheet' {
       minWidth: number;
     };
     style?: {
-      bgcolor: string;
-      align: 'left' | 'center' | 'right';
-      valign: 'top' | 'middle' | 'bottom';
-      textwrap: boolean;
-      strike: boolean;
-      underline: boolean;
-      color: string;
-      font: {
-        name: 'Helvetica';
-        size: number;
-        bold: boolean;
-        italic: false;
+      bgcolor?: string;
+      align?: 'left' | 'center' | 'right';
+      valign?: 'top' | 'middle' | 'bottom';
+      textwrap?: boolean;
+      strike?: boolean;
+      underline?: boolean;
+      color?: string;
+      font?: {
+        name?: string;
+        size?: number;
+        bold?: boolean;
+        italic?: false;
       };
     };
   }

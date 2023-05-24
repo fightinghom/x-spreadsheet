@@ -374,6 +374,10 @@ function toolbarChangePaintformatPaste() {
   }
 }
 
+let scrollTimer = null;
+const scrollTimeout = 60;
+const scrollDistance = 80;
+
 function overlayerMousedown(evt) {
   // console.log(':::::overlayer.mousedown:', evt.detail, evt.button, evt.buttons, evt.shiftKey);
   // console.log('evt.target.className:', evt.target.className);
@@ -408,9 +412,39 @@ function overlayerMousedown(evt) {
       selectorSet.call(this, false, ri, ci);
     }
 
+    // 判断鼠标是否超出表格右边界和下边界，超出则执行滚动
+    const overlayerToScroll = (mouse) => {
+      const box = this.overlayerEl.el.getBoundingClientRect();
+      const overRight = box.right - 30;
+      const overBottom = box.bottom - 30;
+      const overLeft = box.left + 50;
+      const overTop = box.top + 30;
+      const { x, y } = mouse;
+      const { left: sLeft } = this.horizontalScrollbar.scroll();
+      const { top: sTop } = this.verticalScrollbar.scroll();
+      if (x > overRight) {
+        this.horizontalScrollbar.move({ left: sLeft + scrollDistance });
+      }
+      if (y > overBottom) {
+        this.verticalScrollbar.move({ top: sTop + scrollDistance });
+      }
+      if (x < overLeft) {
+        this.horizontalScrollbar.move({ left: sLeft - scrollDistance });
+      }
+      if (y < overTop) {
+        this.verticalScrollbar.move({ top: sTop - scrollDistance });
+      }
+    };
     // mouse move up
     mouseMoveUp(window, (e) => {
       // console.log('mouseMoveUp::::');
+      if (!scrollTimer) {
+        scrollTimer = setTimeout(() => {
+          overlayerToScroll(e);
+          clearTimeout(scrollTimer);
+          scrollTimer = null;
+        }, scrollTimeout);
+      }
       ({ ri, ci } = data.getCellRectByXY(e.offsetX, e.offsetY));
       if (isAutofillEl) {
         selector.showAutofill(ri, ci);
@@ -926,6 +960,8 @@ export default class Sheet {
     sheetReset.call(this);
     // init selector [0, 0]
     selectorSet.call(this, false, 0, 0);
+    // 这里可以添加响应方法来通过外部调用xs.sheet中的方法来改变样式
+    this.insertDeleteRowColumn = insertDeleteRowColumn;
   }
 
   on(eventName, func) {

@@ -7,6 +7,7 @@ import { formatm } from '../core/format';
 import {
   Draw, DrawBox, thinLineWidth, npx,
 } from '../canvas/draw';
+import { isNumber } from '../core/helper';
 // gobal var
 const cellPaddingWidth = 5;
 const tableFixedHeaderCleanStyle = { fillStyle: '#f4f5f8' };
@@ -50,7 +51,9 @@ function renderCellBorders(bboxes, translateFunc) {
 */
 
 export function renderCell(draw, data, rindex, cindex, yoffset = 0) {
-  const { sortedRowMap, rows, cols } = data;
+  const {
+    sortedRowMap, rows, cols, settings,
+  } = data;
   if (rows.isHide(rindex) || cols.isHide(cindex)) return;
   let nrindex = rindex;
   if (sortedRowMap.has(rindex)) {
@@ -66,7 +69,17 @@ export function renderCell(draw, data, rindex, cindex, yoffset = 0) {
 
   const style = data.getCellStyleOrDefault(nrindex, cindex);
   const dbox = getDrawBox(data, rindex, cindex, yoffset);
+  const cellData = data.rows._[rindex].cells[cindex];
   dbox.bgcolor = style.bgcolor;
+  if (isNumber(style.bgcolor)) {
+    const customBgColor = data.dataBar[style.bgcolor];
+    if (customBgColor && settings.dataBarFn) {
+      dbox.bgcolor = settings.dataBarFn(customBgColor, cellData, {
+        draw, data, rindex, cindex, dbox,
+      });
+    }
+  }
+  // 判断是否需要自定义背景颜色
   if (style.border !== undefined) {
     dbox.setBorders(style.border);
     // bboxes.push({ ri: rindex, ci: cindex, box: dbox });
@@ -86,12 +99,20 @@ export function renderCell(draw, data, rindex, cindex, yoffset = 0) {
     }
     const font = Object.assign({}, style.font);
     font.size = getFontSizePxByPt(font.size);
-    // console.log('style:', style);
+    let fontColor = style.color;
+    if (isNumber(style.color)) {
+      const customFontColor = data.fieldOperations[style.color];
+      if (customFontColor && settings.fieldOperationsFn) {
+        fontColor = settings.fieldOperationsFn(customFontColor, cellData, {
+          draw, data, rindex, cindex, dbox,
+        });
+      }
+    }
     draw.text(cellText, dbox, {
       align: style.align,
       valign: style.valign,
       font,
-      color: style.color,
+      color: fontColor,
       strike: style.strike,
       underline: style.underline,
     }, style.textwrap);
@@ -319,7 +340,6 @@ class Table {
     const fw = cols.indexWidth;
     // fixed height of header
     const fh = rows.height;
-
     this.draw.resize(data.viewWidth(), data.viewHeight());
     this.clear();
 

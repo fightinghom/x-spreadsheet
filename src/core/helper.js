@@ -133,6 +133,24 @@ export function numberCalc(type, a1, a2) {
   return ret.toFixed(Math.max(al1, al2));
 }
 
+export const objType = obj => Object.prototype.toString.call(obj);
+
+export const objCall = (obj, string) => objType(obj) === `[object ${string}]`;
+
+export function isEmptyValue(val) {
+  if (objCall(val, 'Null') || objCall(val, 'Undefined')) return true;
+  if (val === '') return true;
+  return false;
+}
+
+export function isNumber(val) {
+  if (isEmptyValue(val)) return false;
+  if (Number.isNaN(Number(val))) return false;
+  return true;
+}
+
+export const isObject = val => objCall(val, 'Object');
+
 export default {
   cloneDeep,
   merge: (...sources) => mergeDeep({}, ...sources),

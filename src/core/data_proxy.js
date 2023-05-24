@@ -6,7 +6,7 @@ import History from './history';
 import Clipboard from './clipboard';
 import AutoFilter from './auto_filter';
 import { Merges } from './merge';
-import helper from './helper';
+import helper, { isObject } from './helper';
 import { Rows } from './row';
 import { Cols } from './col';
 import { Validations } from './validation';
@@ -601,6 +601,7 @@ export default class DataProxy {
           let cstyle = {};
           if (cell.style !== undefined) {
             cstyle = helper.cloneDeep(styles[cell.style]);
+            console.log(666666666);
           }
           if (property === 'format') {
             cstyle.format = value;
@@ -613,9 +614,24 @@ export default class DataProxy {
             cell.style = this.addStyle(cstyle);
           } else if (property === 'strike' || property === 'textwrap'
             || property === 'underline'
-            || property === 'align' || property === 'valign'
-            || property === 'color' || property === 'bgcolor') {
+            || property === 'align' || property === 'valign') {
             cstyle[property] = value;
+            cell.style = this.addStyle(cstyle);
+          } else if (property === 'color') {
+            if (isObject(value)) {
+              const fieldOperationsIndex = this.addFieldOperations(value);
+              cstyle[property] = fieldOperationsIndex;
+            } else {
+              cstyle[property] = value;
+            }
+            cell.style = this.addStyle(cstyle);
+          } else if (property === 'bgcolor') {
+            if (isObject(value)) {
+              const dataBarIndex = this.addDataBar(value);
+              cstyle[property] = dataBarIndex;
+            } else {
+              cstyle[property] = value;
+            }
             cell.style = this.addStyle(cstyle);
           } else {
             cell[property] = value;
@@ -1202,6 +1218,27 @@ export default class DataProxy {
     return styles.length - 1;
   }
 
+  addDataBar(nDataBar) {
+    const { dataBar } = this;
+    for (let i = 0; i < dataBar.length; i += 1) {
+      const style = dataBar[i];
+      if (helper.equals(style, nDataBar)) return i;
+    }
+    dataBar.push(nDataBar);
+    return dataBar.length - 1;
+  }
+
+  addFieldOperations(nFieldOperations) {
+    let { fieldOperations } = this;
+    fieldOperations = fieldOperations || [];
+    for (let i = 0; i < fieldOperations.length; i += 1) {
+      const style = fieldOperations[i];
+      if (helper.equals(style, nFieldOperations)) return i;
+    }
+    fieldOperations.push(nFieldOperations);
+    return fieldOperations.length - 1;
+  }
+
   changeData(cb) {
     this.history.add(this.getData());
     cb();
@@ -1228,6 +1265,7 @@ export default class DataProxy {
   getData() {
     const {
       name, freeze, styles, merges, rows, cols, validations, autoFilter,
+      dataBar, fieldOperations,
     } = this;
     return {
       name,
@@ -1238,6 +1276,8 @@ export default class DataProxy {
       cols: cols.getData(),
       validations: validations.getData(),
       autofilter: autoFilter.getData(),
+      dataBar,
+      fieldOperations,
     };
   }
 }
